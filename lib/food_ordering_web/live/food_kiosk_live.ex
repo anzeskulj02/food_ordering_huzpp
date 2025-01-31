@@ -20,7 +20,8 @@ defmodule FoodOrderingWeb.FoodKioskLive do
      |> assign(:foods, foods)
      |> assign(:order, %{:food => %{}, :total_price => 0})
      |> assign(:selected_food, nil)
-     |> assign(:order_view, false)}
+     |> assign(:order_view, false)
+     |> assign(:quantity_counter, 1)}
   end
 
   def render(assigns) do
@@ -32,7 +33,7 @@ defmodule FoodOrderingWeb.FoodKioskLive do
       <%= for food <- @foods do %>
         <div class="w-full my-10 bg-white border border-gray-200 rounded-lg shadow-sm">
           <%= if @selected_food && @selected_food.id == food.id do %>
-            <CustomComponents.detailed_block food={@selected_food} />
+            <CustomComponents.detailed_block food={@selected_food} quantity={@quantity_counter}/>
           <% else %>
             <CustomComponents.information_block food={food} />
           <% end %>
@@ -67,6 +68,20 @@ defmodule FoodOrderingWeb.FoodKioskLive do
       |> Map.update(:total_price, 0, &(&1 + (food.price * quantity)))
 
     {:noreply, assign(socket, order: updated_order, selected_food: nil)}
+  end
+
+  def handle_event("quantity_change", %{"direction" => direction}, socket) do
+    quantity =
+      if direction == "increment" do
+        socket.assigns.quantity_counter + 1
+      else
+        if socket.assigns.quantity_counter == 1 do
+          1
+        else
+          socket.assigns.quantity_counter - 1
+        end
+      end
+    {:noreply, assign(socket, quantity_counter: quantity)}
   end
 
   # Handle event for caneling food order in detailed view of the food

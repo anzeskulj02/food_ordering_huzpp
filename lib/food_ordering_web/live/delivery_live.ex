@@ -17,16 +17,25 @@ defmodule FoodOrderingWeb.DeliveryLive do
     foods =
       Menu.list_foods()
         |> Enum.map(fn food -> %{id: food.id, name: food.name, description: food.description, price: Decimal.to_float(food.price), calories: Decimal.to_float(food.calories), ingredients: Enum.map(food.ingredients, & &1.name), slug: food.slug} end)
-    {:ok,
-     socket
-     |> assign(:foods, foods)
-     |> assign(:order, %{:food => %{}, :total_price => 0})
-     |> assign(:selected_food, nil)
-     |> assign(:order_view, false)
-     |> assign(:quantity_counter, 1)
-     |> assign(:welcome_block, true)
-     |> assign(:loading, false)}
-  end
+    drinks =
+      Menu.list_drinks()
+      |> Enum.map(fn drink -> %{id: drink.id, name: drink.name, price: Decimal.to_float(drink.price), slug: drink.slug} end)
+
+      {:ok,
+      socket
+      |> assign(:foods, foods)
+      |> assign(:drinks, drinks)
+      |> assign(:order, %{:food => %{}, :drinks => %{}, :total_price => 0})
+      |> assign(:selected_food, nil)
+      |> assign(:selected_drink, nil)
+      |> assign(:order_view, false)
+      |> assign(:quantity_counter, 1)
+      |> assign(:welcome_block, true)
+      |> assign(:loading, false)
+      |> assign(:cebula_modal, false)
+      |> assign(:pijaca, false)
+      |> assign(:drink, nil)}
+   end
 
   def render(assigns) do
     ~H"""
@@ -39,7 +48,7 @@ defmodule FoodOrderingWeb.DeliveryLive do
     <% end %>
 
     <%= if @order_view do %>
-      <CustomComponents.order_block order={@order} />
+      <CustomComponents.order_block_delivery order={@order} drinks={@drinks}/>
     <% end %>
       <div class="mb-28">
         <%= for food <- @foods do %>

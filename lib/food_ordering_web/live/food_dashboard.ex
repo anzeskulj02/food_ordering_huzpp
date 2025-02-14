@@ -12,8 +12,6 @@ defmodule FoodOrderingWeb.FoodDashboard do
 
     orders  = Menu.list_pending_orders()
 
-    IO.inspect(orders)
-
     {:ok, assign(socket, :orders, orders)}
   end
 

@@ -11,6 +11,23 @@
 # and so on) as they will fail if something goes wrong.
 alias FoodOrdering.Repo
 alias FoodOrdering.Foods.{Food, Ingredient, FoodIngredient, Order, OrderItem}
+alias FoodOrdering.Drinks.Drinks
+
+drinks = [
+  %{name: "Pivo", price: 2, slug: "pivo"},
+  %{name: "Spricer bel", price: 2, slug: "spricer-rdec"},
+  %{name: "Spricer rdeč", price: 2, slug: "spricer-bel"},
+  %{name: "Sok", price: 2, slug: "sok"},
+  %{name: "Wisky - Cola", price: 2.5, slug: "wiskycola"}
+]
+
+Enum.each(drinks, fn drink_attrs ->
+  %Drinks{}
+  |> Drinks.changeset(drink_attrs)
+  |> Repo.insert!()
+end)
+
+"""
 foods = Repo.all(Food)
 
 orders =
@@ -36,7 +53,7 @@ for order <- orders do
   |> Repo.insert!()
 end
 
-"""
+
 # Ingredients
 lettuce = Repo.insert!(%Ingredient{name: "Lettuce", additional_price: 0.0, slug: "lettuce"})
 tomato = Repo.insert!(%Ingredient{name: "Tomato", additional_price: 0.0, slug: "tomato"})

@@ -56,6 +56,32 @@ Hooks.CameraHook = {
   }
 };
 
+Hooks.PlaySound = {
+  mounted() {
+    this.handleEvent("play_sound", ({ sound }) => {
+      if (sound) {
+        let audio = new Audio(sound);
+        audio.play().catch(err => console.error("Error playing sound:", err));
+      }
+    });
+  }
+};
+
+Hooks.QuantityUpdater = {
+  mounted() {
+    console.log("QuantityUpdater hook mounted");
+
+    // Listen for the "update_quantity" event
+    this.handleEvent("update_quantity", ({ quantity }) => {
+      console.log("Received update_quantity event:", quantity);
+      const quantityInput = document.getElementById("quantity-input");
+      if (quantityInput) {
+        quantityInput.value = quantity;
+      }
+    });
+  }
+};
+
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,

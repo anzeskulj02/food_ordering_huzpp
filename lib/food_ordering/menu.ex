@@ -9,6 +9,7 @@ defmodule FoodOrdering.Menu do
   alias FoodOrdering.Foods.Food
   alias FoodOrdering.Foods.Order
   alias FoodOrdering.Foods.OrderItem
+  alias FoodOrdering.Drinks.Drinks
 
   @doc """
   Returns the list of foods.
@@ -19,6 +20,11 @@ defmodule FoodOrdering.Menu do
       [%Food{}, ...]
 
   """
+
+  def list_drinks  do
+    Repo.all(Drinks)
+  end
+
   def list_foods do
     Repo.all(Food)
     |> Repo.preload([:ingredients])

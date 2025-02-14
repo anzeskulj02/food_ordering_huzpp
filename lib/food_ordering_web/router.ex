@@ -23,6 +23,8 @@ defmodule FoodOrderingWeb.Router do
     live "/dashboard_images", FoodOrderingWeb.ImagesDashboardLive
 
     live "/food_dashboard", FoodOrderingWeb.FoodDashboard
+
+    live "/dostava", FoodOrderingWeb.DeliveryLive
   end
 
   # Other scopes may use custom stacks.

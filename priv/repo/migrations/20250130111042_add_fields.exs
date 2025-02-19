@@ -3,7 +3,8 @@ defmodule FoodOrdering.Repo.Migrations.AddFields do
 
   def change do
     alter table("foods") do
-      add :audio, :string
+      add :slug, :string
+      add :calories, :string
     end
   end
 end

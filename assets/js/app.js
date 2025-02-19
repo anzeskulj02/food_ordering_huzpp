@@ -44,7 +44,6 @@ Hooks.CameraHook = {
 
           // First, send image to LiveView
           this.pushEvent("upload_image", { image: imageData }, () => {
-            // After the image is uploaded, trigger "confirm_order"
             this.el.click();
           });
         };

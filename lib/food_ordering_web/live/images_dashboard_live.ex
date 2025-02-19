@@ -14,13 +14,16 @@ defmodule FoodOrderingWeb.ImagesDashboardLive do
 
   def render(assigns) do
     ~H"""
-    <div class="grid grid-cols-3 gap-4 p-4">
-      <%= for image <- @images do %>
-        <div class="border rounded-lg p-2">
-          <img src={"images/dashboard/#{image}"} alt={image} class="w-full h-auto rounded-lg shadow" />
-          <p class="mt-2 text-sm text-center"><%= image %></p>
-        </div>
-      <% end %>
+    <div class="relative h-screen w-screen overflow-hidden">
+      <div class="absolute top-0 left-0 flex items-center h-full w-[200%] animate-slide">
+        <%= for _ <- 1..2 do %> <!-- Duplicate images for seamless loop -->
+          <%= for image <- @images do %>
+            <div class="h-full flex-none">
+              <img src={"images/dashboard/#{image}"} alt={image} class="ml-5 w-auto object-cover rounded-lg shadow" />
+            </div>
+          <% end %>
+        <% end %>
+      </div>
     </div>
     """
   end

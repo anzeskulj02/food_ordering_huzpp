@@ -205,6 +205,105 @@ defmodule FoodOrderingWeb.CustomComponents do
     """
   end
 
+  attr :order, :map, required: true, doc: "order information"
+  attr :drinks, :list, required: true, doc: "list of drinks"
+  attr :kontakt, :map, required: true, doc: "list of drinks"
+  def order_block_delivery(assigns) do
+    ~H"""
+      <div class="fixed inset-0 z-30 flex flex-col bg-white shadow-lg overflow-auto">
+        <div class="flex justify-between items-center px-4 sm:px-5">
+          <div>
+            <h2 class="text-lg sm:text-3xl mt-6 sm:mt-10 font-bold">Preglej naročilo</h2>
+            <p class="text-sm sm:text-xl text-gray-600">Kasnejših reklamacij ne upoštevamo</p>
+          </div>
+          <button type="button" phx-click="close_order_view" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-base sm:text-lg w-8 h-8 sm:w-10 sm:h-10 flex justify-center items-center" data-modal-hide="default-modal">
+            <svg class="w-5 h-5 sm:w-6 sm:h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+            </svg>
+            <span class="sr-only">Zapri</span>
+          </button>
+        </div>
+
+        <div class="relative overflow-x-auto sm:rounded-lg mt-6 sm:mt-10 flex-1 min-h-0">
+          <table class="w-full text-xs sm:text-sm text-left text-gray-500">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+              <tr>
+                <th scope="col" class="px-3 sm:px-6 py-2 sm:py-3">Hrana</th>
+                <th scope="col" class="px-3 sm:px-6 py-2 sm:py-3">Količina</th>
+                <th scope="col" class="px-3 sm:px-6 py-2 sm:py-3">Sestavine</th>
+                <th scope="col" class="px-3 sm:px-6 py-2 sm:py-3">Cena</th>
+                <th scope="col" class="px-3 sm:px-6 py-2 sm:py-3"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <%= for {_id, food} <- @order.food do %>
+                <tr class="odd:bg-white even:bg-gray-50 border-b border-gray-200">
+                  <th scope="row" class="px-3 sm:px-6 py-2 sm:py-4 font-medium text-gray-900 whitespace-nowrap">
+                    <%= food.name %>
+                  </th>
+                  <td class="px-3 sm:px-6 py-2 sm:py-4">
+                    <%= food.quantity %>
+                  </td>
+                  <td class="px-3 sm:px-6 py-2 sm:py-4">
+                    <%= Enum.join(food.ingredients, ", ") %>
+                  </td>
+                  <td class="px-3 sm:px-6 py-2 sm:py-4">
+                    <%= food.price %> €
+                  </td>
+                  <td class="px-3 sm:px-6 py-2 sm:py-4">
+                    <button phx-click="remove_from_order" phx-value-id={food.id} class="text-red-600 hover:underline">Odstrani</button>
+                  </td>
+                </tr>
+              <% end %>
+
+              <%= for {_id, drink} <- @order.drinks do %>
+                <tr class="odd:bg-white even:bg-gray-50 border-b border-gray-200">
+                  <th scope="row" class="px-3 sm:px-6 py-2 sm:py-4 font-medium text-gray-900 whitespace-nowrap">
+                    <%= drink.name %>
+                  </th>
+                  <td class="px-3 sm:px-6 py-2 sm:py-4">
+                    <%= drink.quantity %>
+                  </td>
+                  <td class="px-3 sm:px-6 py-2 sm:py-4">
+                    Alkohol
+                  </td>
+                  <td class="px-3 sm:px-6 py-2 sm:py-4">
+                    <%= drink.price %> €
+                  </td>
+                  <td class="px-3 sm:px-6 py-2 sm:py-4">
+                    <button phx-click="remove_from_order" phx-value-id={drink.id} class="text-red-600 hover:underline">Odstrani</button>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="px-4 sm:px-5">
+          <button phx-click="show_kontakt" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm sm:text-lg px-4 sm:px-5 py-2 sm:py-2.5 text-center">
+            Vnesi podatke za dostavo
+          </button>
+        </div>
+
+        <.add_to_order drinks={@drinks}/>
+
+        <div class="flex sm:flex-row items-center justify-between p-4 sm:p-5 bg-white gap-4 sm:gap-0">
+          <div class="text-base sm:text-3xl font-semibold">Skupen znesek: <%= @order.total_price %> €</div>
+          <%= if map_size(@kontakt) == 0 do %>
+            <button id="capture" phx-click="confirm_order" disabled class="text-white bg-gray-500 font-medium rounded-lg text-sm sm:text-lg px-4 sm:px-5 py-2 sm:py-2.5 text-center">
+              Oddaj naročilo!
+            </button>
+          <% else %>
+            <button id="capture" phx-click="confirm_order" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm sm:text-lg px-4 sm:px-5 py-2 sm:py-2.5 text-center">
+              Oddaj naročilo!
+            </button>
+          <% end %>
+        </div>
+      </div>
+
+    """
+  end
+
   def welcome_block(assigns) do
     flags = get_random_flags()
     translations = get_translations()
@@ -227,6 +326,42 @@ defmodule FoodOrderingWeb.CustomComponents do
             </div>
             <p class="mt-5 sm:mt-8 text-sm sm:text-lg font-normal text-gray-400 lg:text-xl sm:px-16 lg:px-48"><i>* Nima veze kaj zbereš, ne nrdi razlike</i></p>
 
+            <div class="flex flex-col gap-2 rounded-lg bg-gray-50 p-3 mt-5 sm:mt-10 overflow-scroll">
+              <div class="flex items-center gap-2">
+                <img src={"/images/slovenia.svg"} alt="Flag" class="w-11 h-7 object-cover" />
+                <p class="text-lg font-semibold text-gray-700">Dobrodošli</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <img src={"/images/uk.svg"} alt="Flag" class="w-11 h-7 object-cover" />
+                <p class="text-lg font-semibold text-gray-700">Wellcum</p>
+              </div>
+              <%= for flag <- flags do %>
+                <div class="flex items-center gap-2">
+                  <img src={flag} alt="Flag" class="w-11 h-7 object-cover" />
+                  <p class="text-lg font-semibold text-gray-700"><%= Map.get(translations, Path.basename(flag, ".svg"), "Unknown") %></p>
+                </div>
+              <% end %>
+            </div>
+
+        </div>
+      </section>
+    """
+  end
+
+  def welcome_block_delivery(assigns) do
+    flags = get_random_flags()
+    translations = get_translations()
+    ~H"""
+      <section class="fixed inset-0 z-30 bg-white">
+        <div class=" flex flex-col h-full justify-between py-5 sm:py-10 px-2 sm:px-4 mx-auto max-w-screen-3xl text-center lg:py-16">
+            <h1 class="mt-2 sm:mb-4 text-3xl sm:text-4xl font-extrabold tracking-tight leading-none text-gray-900 md:text-5xl lg:text-6xl">DOSTAVA TOMBA</h1>
+            <p class="mb-4 sm:mb-20 text-base sm:text-lg font-normal text-gray-500 lg:text-xl sm:px-16 lg:px-48">Naroči hrano in pijačo.<br>Mi pripravimo, tomba dostavi.</p>
+            <div>
+                <button phx-click="remove_welcome" class="p-10 text-lg sm:text-2xl font-medium text-center text-white rounded-lg bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300">
+                    <img class="w-2/3 mx-auto" src="/images/drunk.png" alt="arrow right" />
+                    <p class="mt-5 sm:mt-10 text-2xl">Vstopi</p>
+                </button>
+            </div>
             <div class="flex flex-col gap-2 rounded-lg bg-gray-50 p-3 mt-5 sm:mt-10 overflow-scroll">
               <div class="flex items-center gap-2">
                 <img src={"/images/slovenia.svg"} alt="Flag" class="w-11 h-7 object-cover" />
@@ -365,6 +500,40 @@ defmodule FoodOrderingWeb.CustomComponents do
                 </div>
             </div>
         </div>
+    """
+  end
+
+  attr :kontakt, :map, required: true, doc: "kontakt"
+  def kontakt_block(assigns) do
+    ~H"""
+      <div class="fixed inset-0 z-40 p-3 flex flex-col items-center justify-center bg-white">
+        <h2 class="text-2xl font-semibold mb-4">Vnesi podatke za dostavo</h2>
+        <form phx-submit="save_kontakt_data" class="space-y-4 w-full">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Ime</label>
+            <input type="text" name="name" required class="w-full p-2 border border-gray-300 rounded-md">
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Priimek</label>
+            <input type="text" name="surename" required class="w-full p-2 border border-gray-300 rounded-md">
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Telefonska številka</label>
+            <input type="text" name="phone" required class="w-full p-2 border border-gray-300 rounded-md">
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Hišna številka</label>
+            <textarea name="address" required class="w-full p-2 border border-gray-300 rounded-md"></textarea>
+          </div>
+
+          <div>
+            <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600">Shrani</button>
+          </div>
+        </form>
+      </div>
     """
   end
 

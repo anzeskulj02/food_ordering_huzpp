@@ -19,24 +19,45 @@ defmodule FoodOrderingWeb.FoodDashboard do
     ~H"""
     <div class="grid grid-cols-3 gap-4 p-4">
       <%= for order <- @orders do %>
-        <div class="border rounded-lg p-3">
-          <div class="flex justify-between">
-            <p class="mt-2 text-lg font-medium"><%= order.order_number %></p>
-            <p class="mt-2 text-lg text-center"><%= order.status %></p>
-            <!--<p class="mt-2 text-base text-center"><%= order.total_price %> €</p>-->
-          </div>
+        <%= if order.order_number < 0 do %>
+          <div class="border rounded-lg p-3 bg-blue-300">
+            <div class="flex justify-between">
+              <p class="mt-2 text-lg font-medium"><%= order.order_number %> (DOSTAVA)</p>
+              <p class="mt-2 text-lg text-center"><%= order.status %></p>
+              <!--<p class="mt-2 text-base text-center"><%= order.total_price %> €</p>-->
+            </div>
 
-            <%= for food <- order.order_items do %>
-              <div class="flex mt-4">
-                <p class="mt-2 text-lg"><%= food.food.name %></p>
-                <p class="mt-2 ml-4 text-lg"><%= food.customizations["quantity"] %> X</p>
+              <%= for food <- order.order_items do %>
+                <div class="flex mt-4">
+                  <p class="mt-2 text-lg"><%= food.food.name %></p>
+                  <p class="mt-2 ml-4 text-lg"><%= food.customizations["quantity"] %> X</p>
 
-              </div>
-              <%= for ingredient <- food.customizations["ingredients"] do %>
-                <p class="ml-3 text-base"><%= ingredient %></p>
+                </div>
+                <%= for ingredient <- food.customizations["ingredients"] do %>
+                  <p class="ml-3 text-base"><%= ingredient %></p>
+                <% end %>
               <% end %>
-            <% end %>
-        </div>
+          </div>
+        <% else %>
+          <div class="border rounded-lg p-3">
+            <div class="flex justify-between">
+              <p class="mt-2 text-lg font-medium"><%= order.order_number %></p>
+              <p class="mt-2 text-lg text-center"><%= order.status %></p>
+              <!--<p class="mt-2 text-base text-center"><%= order.total_price %> €</p>-->
+            </div>
+
+              <%= for food <- order.order_items do %>
+                <div class="flex mt-4">
+                  <p class="mt-2 text-lg"><%= food.food.name %></p>
+                  <p class="mt-2 ml-4 text-lg"><%= food.customizations["quantity"] %> X</p>
+
+                </div>
+                <%= for ingredient <- food.customizations["ingredients"] do %>
+                  <p class="ml-3 text-base"><%= ingredient %></p>
+                <% end %>
+              <% end %>
+          </div>
+        <% end %>
       <% end %>
     </div>
     """

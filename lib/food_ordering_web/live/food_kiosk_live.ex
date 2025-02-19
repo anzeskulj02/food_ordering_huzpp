@@ -188,34 +188,45 @@ defmodule FoodOrderingWeb.FoodKioskLive do
 
   # Handle event for confirming the order. FINAL STEP
   def handle_event("confirm_order", _params, socket) do
-    #generate number for the order (needs to be synced with the restaurant pager system. need to have a variable to store all active and incative pagers and then decide which one to use)
-    order_number = :rand.uniform(10)
+    case Menu.generate_unique_order_number() do
+      {:ok, order_number} ->
+        IO.inspect(socket.assigns.order)
+        IO.inspect(order_number)
 
-    IO.inspect(socket.assigns.order)
+        Menu.record_sale(socket.assigns.order)
 
-    order = transform_order(socket.assigns.order, order_number)
+        IO.inspect(socket.assigns.order)
+        order = transform_order(socket.assigns.order, order_number)
 
-    case Printer.from_usb(0x1504, 0x001d) do
-      {:ok, %Printer{} = p} ->
-        IO.puts("Printer connected successfully!")
-        print_receipt(p, order)
-        {:ok, p}
 
-      {:error, :device_not_found} ->
-        IO.puts("Error: Printer not found. Please check the connection.")
-        :error
+
+        case Printer.from_usb(0x1504, 0x001d) do
+          {:ok, %Printer{} = p} ->
+            IO.puts("Printer connected successfully!")
+            print_receipt(p, order)
+            Menu.use_paper()
+            {:ok, p}
+
+          {:error, :device_not_found} ->
+            Menu.use_paper()
+            IO.puts("Error: Printer not found. Please check the connection.")
+            :error
+        end
+
+        PubSub.broadcast(FoodOrdering.PubSub, @topic, {:new_order, order})
+
+        Menu.create_order(socket.assigns.order, order_number)
+
+        socket= assign(socket, order_view: false, order: %{:food => %{}, :total_price => 0}, loading: true)
+
+        socket = push_event(socket, "play_sound", %{"sound" => "sounds/konec/konec.mp3"})
+
+        {:noreply, socket}
+
+      {:error, :no_available_pagers} ->
+        IO.puts("No available order numbers!")
+        {:noreply, socket}
     end
-
-
-    PubSub.broadcast(FoodOrdering.PubSub, @topic, {:new_order, order})
-
-    Menu.create_order(socket.assigns.order, order_number)
-
-    socket= assign(socket, order_view: false, order: %{:food => %{}, :total_price => 0}, loading: true)
-
-    socket = push_event(socket, "play_sound", %{"sound" => "sounds/konec/konec.mp3"})
-
-    {:noreply, socket}
   end
 
   def handle_event("remove_from_order", %{"id" => food_id}, socket) do
@@ -281,7 +292,6 @@ defmodule FoodOrderingWeb.FoodKioskLive do
     order_number = order.order_number
     total_price = order.total_price
     order_items = order.order_items
-    srecka = :rand.uniform(10000)
 
     data = [
       "                    |                \n" |> to_string(),

@@ -18,13 +18,13 @@ defmodule FoodOrderingWeb.Router do
   scope "/" do
     pipe_through :browser
 
-    live "/", FoodOrderingWeb.FoodKioskLive
+    live "/kiosk", FoodOrderingWeb.FoodKioskLive
 
     live "/dashboard_images", FoodOrderingWeb.ImagesDashboardLive
 
     live "/food_dashboard", FoodOrderingWeb.FoodDashboard
 
-    live "/dostava", FoodOrderingWeb.DeliveryLive
+    live "/", FoodOrderingWeb.DeliveryLive
 
     live "/admin", FoodOrderingWeb.AdminLive
   end

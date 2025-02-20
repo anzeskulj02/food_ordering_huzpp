@@ -3,7 +3,7 @@ defmodule FoodOrderingWeb.ImagesDashboardLive do
 
   alias FoodOrderingWeb.CustomComponents
 
-  @uploads_dir "./priv/static/images/dashboard"
+  @uploads_dir "./uploads/dashboard/"
 
   def mount(_params, _session, socket) do
     # List all images in the uploads directory
@@ -19,7 +19,7 @@ defmodule FoodOrderingWeb.ImagesDashboardLive do
         <%= for _ <- 1..2 do %> <!-- Duplicate images for seamless loop -->
           <%= for image <- @images do %>
             <div class="h-full flex-none">
-              <img src={"images/dashboard/#{image}"} alt={image} class="ml-5 w-auto object-cover rounded-lg shadow" />
+              <img src={"uploads/dashboard/#{image}"} alt={image} class="ml-5 w-auto object-cover rounded-lg shadow" />
             </div>
           <% end %>
         <% end %>

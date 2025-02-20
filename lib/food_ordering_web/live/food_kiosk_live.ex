@@ -260,20 +260,18 @@ defmodule FoodOrderingWeb.FoodKioskLive do
   end
 
   def handle_event("upload_image", %{"image" => image_data}, socket) do
-    # Extract the format (png or jpeg)
     case Regex.run(~r/data:image\/(png|jpeg);base64,/, image_data) do
       [_, format] ->
-        # Remove the Base64 prefix
         base64_data = String.replace(image_data, ~r/data:image\/(png|jpeg);base64,/, "")
 
-        # Attempt to decode
         case Base.decode64(base64_data) do
           {:ok, binary} ->
             timestamp = :os.system_time(:millisecond)
             extension = if format == "jpeg", do: "jpg", else: "png"
             filename = "image_#{timestamp}.#{extension}"
 
-            uploads_dir = "./priv/static/images/dashboard"
+            # Store in 'uploads/dashboard' instead of 'priv/static'
+            uploads_dir = "uploads/dashboard"
             File.mkdir_p!(uploads_dir)
             File.write!(Path.join(uploads_dir, filename), binary)
 

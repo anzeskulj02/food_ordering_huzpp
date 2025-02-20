@@ -50,4 +50,9 @@ defmodule FoodOrderingWeb.Endpoint do
   plug Plug.Head
   plug Plug.Session, @session_options
   plug FoodOrderingWeb.Router
+
+  plug Plug.Static,
+  at: "/uploads",
+  from: "uploads",
+  gzip: false
 end

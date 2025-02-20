@@ -35,7 +35,7 @@ defmodule FoodOrderingWeb.CustomComponents do
           </div>
           <div class="flex items-center justify-between">
               <span class="text-3xl font-bold text-gray-900"><%= @food.price %> €</span>
-              <a href="#" phx-click="select_more" phx-value-id={@food.id} phx-value-sound={"sounds/izbera_hrane/#{@food.slug}.mp3"} class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Izberi</a>
+              <a href="#" phx-click="select_more" phx-value-id={@food.id} phx-value-sound={"sounds/izbera_hrane/#{@food.slug}.mp3"} class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Prilagodi</a>
           </div>
         </div>
       </div>
@@ -279,10 +279,19 @@ defmodule FoodOrderingWeb.CustomComponents do
           </table>
         </div>
 
-        <div class="px-4 sm:px-5">
-          <button phx-click="show_kontakt" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm sm:text-lg px-4 sm:px-5 py-2 sm:py-2.5 text-center">
-            Vnesi podatke za dostavo
-          </button>
+        <div class="my-5 px-5 sm:px-5 w-full">
+          <%= if map_size(@kontakt) == 0 do %>
+            <button phx-click="show_kontakt" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-base sm:text-lg px-4 sm:px-5 py-2 sm:py-2.5 text-center">
+              Vnesi podatke za dostavo
+            </button>
+          <% else %>
+            <div class="flex flex-row justify-between items-center bg-gray-50 p-4 sm:p-5 rounded-lg">
+              <p>Dostava na: <%= @kontakt.ime %> <%= @kontakt.priimek %></p>
+              <button phx-click="show_kontakt" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-base sm:text-lg px-4 sm:px-5 py-2 sm:py-2.5 text-center">
+                Uredi
+              </button>
+            </div>
+          <% end %>
         </div>
 
         <.add_to_order drinks={@drinks}/>
@@ -496,6 +505,43 @@ defmodule FoodOrderingWeb.CustomComponents do
                     <div class="flex justify-between items-center p-4 md:p-5 border-t border-gray-200 rounded-b">
                         <a phx-click="add_to_order" phx-value-id_food={1006} phx-value-quantity-input={1} phx-value-ingredients={1} class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-xl text-2xl px-10 py-2.5 text-center">Ne pij sam, dej za rundo!</a>
                         <a phx-click="add_to_order" phx-value-id_food={@drink.id} phx-value-quantity-input={1} phx-value-ingredients={1} class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">ne dam za rundo</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    """
+  end
+
+  attr :drink, :string, required: true, doc: "selected drink"
+  def pijaca_modal_delivery(assigns) do
+    ~H"""
+      <div id="default-modal" tabindex="-1" aria-hidden="true"
+        class="overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full before:content-[''] before:fixed before:inset-0 before:bg-black before:opacity-50">
+            <div class="relative p-4 w-full max-w-2xl max-h-full">
+                <!-- Modal content -->
+                <div class="relative bg-white rounded-lg shadow-sm">
+                    <!-- Modal header -->
+                    <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t border-gray-200">
+                        <h3 class="text-3xl font-bold text-red-900">
+                          ! POZOR POZOR POZOR POZOR !
+                        </h3>
+                        <button type="button" phx-click="close_modal_pijaca" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center" data-modal-hide="default-modal">
+                            <svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                            </svg>
+                            <span class="sr-only">Close modal</span>
+                        </button>
+                    </div>
+                    <!-- Modal body -->
+                    <div class="p-4 md:p-5 space-y-4">
+                        <p class="text-lg leading-relaxed text-gray-500">
+                          Redno uživanje alkohola povečuje tveganje za bolezni jeter, srčno-žilne težave ter motnje v delovanju živčnega sistema, kar vodi v težave z razpoloženjem in kakovostjo spanja. Poleg tega pivo vsebuje veliko kalorij, ki prispevajo k povečanju telesne mase, še posebej okoli trebuha, kar lahko vodi v dolgoročne zdravstvene težave. Namesto tega je bolje izbrati zdrave načine sprostitve, ki bodo imeli pozitivne učinke na telo in um.
+                        </p>
+                        <img src="/images/gifs/pivo.gif" alt="pivo" class="w-full mx-auto" />
+                    </div>
+                    <!-- Modal footer -->
+                    <div class="flex justify-between items-center p-4 md:p-5 border-t border-gray-200 rounded-b">
+                        <a phx-click="add_to_order" phx-value-id_food={@drink.id} phx-value-quantity-input={1} phx-value-ingredients={1} class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Dodaj pijačo</a>
                     </div>
                 </div>
             </div>

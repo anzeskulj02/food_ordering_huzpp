@@ -21,7 +21,7 @@ defmodule FoodOrdering.Menu do
   end
 
   def list_foods do
-    Repo.all(Food)
+    Repo.all(from f in Food, order_by: [asc: f.id])
     |> Repo.preload([:ingredients])
   end
 

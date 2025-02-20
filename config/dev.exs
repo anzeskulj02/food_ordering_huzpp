@@ -4,7 +4,7 @@ import Config
 config :food_ordering, FoodOrdering.Repo,
   username: "anze",
   password: "postgres",
-  hostname: "localhost",
+  hostname: "192.168.2.207",
   database: "food_ordering_dev",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,

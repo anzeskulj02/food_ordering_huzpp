@@ -55,7 +55,7 @@ defmodule FoodOrderingWeb.DeliveryLive do
     <% end %>
 
     <%= if @pijaca==true do %>
-      <CustomComponents.pijaca_modal drink={@selected_drink}/>
+      <CustomComponents.pijaca_modal_delivery drink={@selected_drink}/>
     <% end %>
 
     <%= if @kontakt_view==true do %>
@@ -166,6 +166,14 @@ defmodule FoodOrderingWeb.DeliveryLive do
   def handle_event("show_modal_cebula", _params, socket) do
     socket = push_event(socket, "play_sound", %{"sound" => "sounds/sestavine/cebula.mp3"})
     {:noreply, assign(socket, :cebula_modal, true)}
+  end
+
+  def handle_event("show_modal_cebula", _params, socket) do
+    {:noreply, assign(socket, :cebula_modal, true)}
+  end
+
+  def handle_event("close_modal_cebula", _params, socket) do
+    {:noreply, assign(socket, :cebula_modal, false)}
   end
 
   # Handle event for caneling food order in detailed view of the food

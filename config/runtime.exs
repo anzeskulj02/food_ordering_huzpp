@@ -63,6 +63,13 @@ if config_env() == :prod do
       ip: {0, 0, 0, 0, 0, 0, 0, 0},
       port: port
     ],
+    https: [
+      port: 1024,
+      cipher_suite: :strong,
+      otp_app: :food_ordering,
+      keyfile: "priv/cert/private.key",
+      certfile: "priv/cert/certificate.crt"
+    ],
     secret_key_base: secret_key_base
 
   # ## SSL Support

@@ -2,7 +2,7 @@ import Config
 
 # Configure your database
 config :food_ordering, FoodOrdering.Repo,
-  username: "postgres",
+  username: "anze",
   password: "postgres",
   hostname: "localhost",
   database: "food_ordering_dev",

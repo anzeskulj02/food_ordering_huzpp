@@ -409,7 +409,7 @@ defmodule FoodOrderingWeb.FoodKioskLive do
       TextFormat.txt_bold_off(),
       "----------------------\n" |> to_string()
     ] ++
-    List.flatten(Enum.flat_map(order_items, &format_item/1)) ++
+    List.flatten(Enum.map(order_items, &format_item/1)) ++
     [
       "----------------------\n" |> to_string(),
       TextFormat.txt_bold_on(),
@@ -449,31 +449,33 @@ defmodule FoodOrderingWeb.FoodKioskLive do
     Printer.close(printer_handle)
   end
 
-  defp format_item(%{food: food,drinks: drinks}) do
+  defp format_item(order) do
     food_items =
-    case food do
-      %{name: name, customizations: %{"ingredients" => ingredients, "quantity" => quantity}} ->
-        [
-          TextFormat.txt_bold_on(),
-          "#{quantity}x #{name}\n",
-          TextFormat.txt_bold_off(),
-          Enum.map(ingredients, fn ingredient -> "- #{ingredient}\n" end)
-        ]
-        |> List.flatten()
+      case order do
+        %{food: %{name: name}, customizations: %{"ingredients" => ingredients, "quantity" => quantity}} ->
+          [
+            TextFormat.txt_bold_on(),
+            "#{quantity}x #{name}\n",
+            TextFormat.txt_bold_off(),
+            Enum.map(ingredients, fn ingredient -> "- #{ingredient}\n" end)
+          ]
+          |> List.flatten()
 
-      _ ->
-        []
-    end
+        _ ->
+          []
+      end
 
     drink_items =
-    drinks
-    |> Map.values()
-    |> Enum.map(fn %{name: name, quantity: quantity} ->
-      "#{quantity}x #{name}\n"
-    end)
+      order
+      |> Map.get(:drinks, %{}) # Ensure it's a map to prevent errors
+      |> Map.values()
+      |> Enum.map(fn %{name: name, quantity: quantity} ->
+        "#{quantity}x #{name}\n"
+      end)
 
     food_items ++ drink_items
   end
+
 
   def transform_order(order_map, order_number) do
     %{

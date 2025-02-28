@@ -318,6 +318,7 @@ defmodule FoodOrderingWeb.FoodKioskLive do
   end
 
   defp print_receipt(printer_handle, order) do
+    IO.inspect(order)
     order_number = order.order_number
     total_price = order.total_price
     order_items = order.order_items
@@ -408,7 +409,7 @@ defmodule FoodOrderingWeb.FoodKioskLive do
       TextFormat.txt_bold_off(),
       "----------------------\n" |> to_string()
     ] ++
-    List.flatten(Enum.map(order_items, &format_item/1)) ++  # Ensure flattened list
+    List.flatten(Enum.flat_map(order_items, &format_item/1)) ++
     [
       "----------------------\n" |> to_string(),
       TextFormat.txt_bold_on(),
@@ -448,14 +449,30 @@ defmodule FoodOrderingWeb.FoodKioskLive do
     Printer.close(printer_handle)
   end
 
-  defp format_item(%{food: %{name: name}, customizations: %{"ingredients" => ingredients, "quantity" => quantity}}) do
-    [
-      TextFormat.txt_bold_on(),
-      "#{quantity}x #{name}\n" |> to_string(),
-      TextFormat.txt_bold_off(),
-      Enum.map(ingredients, fn ingredient -> "- #{ingredient}\n" |> to_string() end)
-    ]
-    |> List.flatten()
+  defp format_item(%{food: food,drinks: drinks}) do
+    food_items =
+    case food do
+      %{name: name, customizations: %{"ingredients" => ingredients, "quantity" => quantity}} ->
+        [
+          TextFormat.txt_bold_on(),
+          "#{quantity}x #{name}\n",
+          TextFormat.txt_bold_off(),
+          Enum.map(ingredients, fn ingredient -> "- #{ingredient}\n" end)
+        ]
+        |> List.flatten()
+
+      _ ->
+        []
+    end
+
+    drink_items =
+    drinks
+    |> Map.values()
+    |> Enum.map(fn %{name: name, quantity: quantity} ->
+      "#{quantity}x #{name}\n"
+    end)
+
+    food_items ++ drink_items
   end
 
   def transform_order(order_map, order_number) do

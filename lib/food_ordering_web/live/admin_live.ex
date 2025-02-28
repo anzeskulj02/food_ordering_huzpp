@@ -91,8 +91,11 @@ defmodule FoodOrderingWeb.AdminLive do
         <h1 class="text-2xl font-bold mb-4">Pagers Status</h1>
         <div class="grid grid-cols-4 gap-4">
           <%= for pager <- @pagers do %>
-            <div class={"p-4 text-center rounded-lg shadow-md font-semibold " <>
-                        (if pager.status == :reserved, do: "bg-red-500 text-white", else: "bg-green-500 text-white")}>
+            <div
+              class={"p-4 text-center rounded-lg shadow-md font-semibold " <>
+                    (if pager.status == :reserved, do: "bg-red-500 text-white", else: "bg-green-500 text-white")}
+              phx-click="set_available"
+              phx-value-order_number={pager.order_number}>
               <p>Pager <%= pager.order_number %></p>
               <%= if pager.status == :reserved do %>
                 <p class="text-sm opacity-80">Reserved until: <%= pager.expires_at %></p>
@@ -130,6 +133,21 @@ defmodule FoodOrderingWeb.AdminLive do
       true -> {:noreply, put_flash(socket, :info, "All images deleted successfully.")}
       false -> {:noreply, put_flash(socket, :error, "Some images could not be deleted.")}
     end
+  end
+
+  def handle_event("set_available", %{"order_number" => order_number}, socket) do
+    updated_pagers =
+      Enum.map(socket.assigns.pagers, fn pager ->
+        if pager.order_number == String.to_integer(order_number) do
+          %{pager | status: :available, expires_at: nil}
+        else
+          pager
+        end
+      end)
+
+    Menu.delete_reserved_pager(order_number)
+
+    {:noreply, assign(socket, pagers: updated_pagers)}
   end
 
   def handle_event("delete_all_orders", __params, socket) do

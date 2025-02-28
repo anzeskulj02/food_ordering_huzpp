@@ -17,7 +17,7 @@ defmodule FoodOrderingWeb.FoodDashboard do
 
   def render(assigns) do
     ~H"""
-    <div class="grid grid-cols-3 gap-4 p-4">
+    <div class="grid grid-cols-4 gap-4 p-4">
       <%= for order <- @orders do %>
         <%= if order.order_number < 0 do %>
           <div class="border rounded-lg p-3 bg-blue-300">

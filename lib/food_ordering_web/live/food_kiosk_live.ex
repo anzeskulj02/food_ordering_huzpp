@@ -2,6 +2,7 @@ defmodule FoodOrderingWeb.FoodKioskLive do
   use FoodOrderingWeb, :live_view
   alias FoodOrderingWeb.CustomComponents
   alias Phoenix.PubSub
+  require Integer
 
   alias FoodOrdering.Menu
 
@@ -12,6 +13,10 @@ defmodule FoodOrderingWeb.FoodKioskLive do
   alias Escpos.Printer
 
   @topic "food_orders"
+
+  @api_host  "https://openapi.tuyaeu.com"
+  @client_id "aqj9p7duyukga9g3eag7"       # Replace with your actual Client ID
+  @secret "188224eb30a84daf86feda969be52e1e" # Replace with your actual Access Secret
 
   def mount(_params, _session, socket) do
     foods =
@@ -61,6 +66,7 @@ defmodule FoodOrderingWeb.FoodKioskLive do
     <%= if @order_view do %>
       <CustomComponents.order_block order={@order} drinks={@drinks}/>
     <% end %>
+    <div class="mx-auto max-w-2xl">
       <div class="mb-28">
         <%= for food <- @foods do %>
             <%= if @selected_food && @selected_food.id == food.id do %>
@@ -71,44 +77,60 @@ defmodule FoodOrderingWeb.FoodKioskLive do
         <% end %>
       </div>
       <footer class="fixed bottom-0 left-0 z-20 w-full bg-white border-t border-gray-200 shadow-sm flex items-center justify-between p-6">
-        <span class="text-xl font-medium text-gray-900 sm:text-center"> Cena: <%= Map.get(@order, :total_price) %> €</span>
-        <ul class="flex flex-wrap items-center sm:mt-3 text-sm sm:text-lg font-medium text-gray-500 sm:mt-0">
+        <span class="text-3xl font-medium text-gray-900 sm:text-center"> Cena: <%= Map.get(@order, :total_price) %> €</span>
+        <ul class="flex flex-wrap items-center text-2xl font-medium text-white bg-blue-700 rounded-lg p-5">
             <li>
-                <a phx-click="finish_order" class="hover:underline">Preglej in zaključi naročilo</a>
+              <a phx-click="finish_order" class="hover:underline">Preglej naročilo</a>
             </li>
         </ul>
       </footer>
       <div id="play-sound-hook" phx-hook="PlaySound"></div>
+    </div>
     """
   end
 
-  # Hande event for adding food to the order (in detailed view of the food)
   def handle_event("add_to_order", %{"id_food" => item_id, "quantity-input" => quantity, "ingredients" => selected_ingredients}, socket) do
     quantity = String.to_integer(quantity)
     item_id = String.to_integer(item_id)
 
-    # Find if the item is a food or a drink
     food = Enum.find(socket.assigns.foods, fn food -> food.id == item_id end)
     drink = Enum.find(socket.assigns.drinks, fn drink -> drink.id == item_id end)
-
+    IO.inspect(drink)
+    IO.inspect(quantity)
     cond do
       food ->
-        updated_food = Map.put(food, :quantity, quantity)
-        updated_food = Map.put(updated_food, :ingredients, selected_ingredients)
+        selected_ingredients = List.wrap(selected_ingredients) |> Enum.sort() # Ensure it's always a list
+        unique_key = {food.id, selected_ingredients} # Unique key with sorted ingredients
+
+        updated_food = %{
+          id: food.id,
+          name: food.name,
+          price: food.price,
+          quantity: quantity,
+          ingredients: selected_ingredients
+        }
 
         updated_order =
           socket.assigns.order
           |> Map.update(:food, %{}, fn foods ->
-            Map.update(foods, food.id, updated_food, fn existing ->
-              %{existing | quantity: existing.quantity + quantity, ingredients: selected_ingredients}
+            Map.update(foods, unique_key, updated_food, fn existing ->
+              %{existing | quantity: existing.quantity + quantity}
             end)
           end)
           |> Map.update(:total_price, 0, &(&1 + (food.price * quantity)))
+
         socket = push_event(socket, "play_sound", %{"sound" => "sounds/prehodi/ka-ching.mp3"})
         {:noreply, assign(socket, order: updated_order, selected_food: nil, quantity_counter: 1)}
 
       drink ->
-        updated_drink = Map.put(drink, :quantity, quantity)
+        updated_drink = %{
+          id: drink.id,
+          quantity: quantity,
+          name: drink.name,
+          slug: drink.slug,
+          price: drink.price
+        }
+
 
         updated_order =
           socket.assigns.order
@@ -118,11 +140,12 @@ defmodule FoodOrderingWeb.FoodKioskLive do
             end)
           end)
           |> Map.update(:total_price, 0, &(&1 + (drink.price * quantity)))
+
         socket = push_event(socket, "play_sound", %{"sound" => "sounds/prehodi/ka-ching.mp3"})
         {:noreply, assign(socket, order: updated_order, selected_drink: nil, quantity_counter: 1, pijaca: false)}
 
       true ->
-        {:noreply, socket} # If neither food nor drink is found, do nothing
+        {:noreply, socket}
     end
   end
 
@@ -159,12 +182,16 @@ defmodule FoodOrderingWeb.FoodKioskLive do
   end
 
   def handle_event("show_modal_pijaca", %{"drink_id" => drink_id}, socket) do
+    token = request_token()
+    send_command(token, %{"code" => "switch_1", "value" => true})
     socket = push_event(socket, "play_sound", %{"sound" => "sounds/prehodi/sirena.mp3"})
     selected_drink = Enum.find(socket.assigns.drinks, fn drink -> drink.id == String.to_integer(drink_id) end)
     {:noreply, assign(socket, pijaca: true, selected_drink: selected_drink)}
   end
 
   def handle_event("close_modal_pijaca", _params, socket) do
+    token = request_token()
+    send_command(token, %{"code" => "switch_1", "value" => true})
     {:noreply, assign(socket, pijaca: false, selected_drink: nil)}
   end
 
@@ -231,12 +258,17 @@ defmodule FoodOrderingWeb.FoodKioskLive do
 
   def handle_event("remove_from_order", %{"id" => food_id}, socket) do
     food = Enum.find(socket.assigns.foods, fn food -> food.id == String.to_integer(food_id) end)
-    quantity = Map.get(socket.assigns.order, :food)[food.id].quantity
+
+    {key, food_entry} =
+      socket.assigns.order.food
+      |> Enum.find(fn {{id, _}, _} -> id == food.id end)
+
+    quantity = food_entry.quantity
 
     updated_order =
       socket.assigns.order
       |> Map.update(:food, %{}, fn foods ->
-        Map.delete(foods, food.id)
+        Map.delete(foods, key)
       end)
       |> Map.update(:total_price, 0, &(&1 - (food.price * quantity)))
 
@@ -270,12 +302,11 @@ defmodule FoodOrderingWeb.FoodKioskLive do
             extension = if format == "jpeg", do: "jpg", else: "png"
             filename = "image_#{timestamp}.#{extension}"
 
-            # Store in 'uploads/dashboard' instead of 'priv/static'
             uploads_dir = "uploads/dashboard"
             File.mkdir_p!(uploads_dir)
             File.write!(Path.join(uploads_dir, filename), binary)
 
-            {:noreply, socket}
+            {:noreply, socket |> push_redirect(to: socket.assigns.live_action)}
 
           :error ->
             {:noreply, put_flash(socket, :error, "Invalid image data")}
@@ -456,6 +487,118 @@ defmodule FoodOrderingWeb.FoodKioskLive do
       total_price: total_price,
       order_items: order_items
     }
+  end
+
+  def get_timestamp do
+    :os.system_time(:millisecond) |> Integer.to_string()
+  end
+
+  def generate_nonce do
+    UUID.uuid4()
+  end
+
+  def generate_string_to_sign(method, query, body, headers, url) do
+    sha256_hash = :crypto.hash(:sha256, body || "")
+                  |> Base.encode16(case: :lower)
+
+    headers_str =
+      if Map.has_key?(headers, "Signature-Headers") do
+        headers["Signature-Headers"]
+        |> String.split(":")
+        |> Enum.map(fn key ->
+          value = Map.get(headers, key, "")
+          "#{key}:#{value}\n"
+        end)
+        |> Enum.join("")
+      else
+        ""
+      end
+
+    sorted_query =
+      query
+      |> URI.encode_query()
+      |> (fn str -> if str != "", do: "?#{str}", else: "" end).()
+
+    full_url = "#{url}#{sorted_query}"
+
+    sign_string = "#{method}\n#{sha256_hash}\n#{headers_str}\n#{full_url}"
+
+    {sign_string, full_url}
+  end
+
+  def generate_sign(client_id, timestamp, nonce, sign_string, secret) do
+    sign_data = client_id <> timestamp <> nonce <> sign_string
+
+    :crypto.mac(:hmac, :sha256, secret, sign_data)
+    |> Base.encode16(case: :upper)
+  end
+
+  def request_token() do
+    timestamp = get_timestamp()
+    nonce = generate_nonce()
+    method = "GET"
+    query = %{"grant_type" => "1"}
+    url = "/v1.0/token"
+
+    headers = %{
+      "client_id" => @client_id,
+      "t" => timestamp,
+      "nonce" => nonce,
+      "sign_method" => "HMAC-SHA256"
+    }
+
+    {sign_string, full_url} = generate_string_to_sign(method, query, "", headers, url)
+
+    sign = generate_sign(@client_id, timestamp, nonce, sign_string, @secret)
+
+    headers = Map.put(headers, "sign", sign)
+
+    response =
+      Req.get!(
+        "https://openapi.tuyaeu.com#{full_url}",
+        headers: headers
+      )
+
+    response.body["result"]["access_token"]
+  end
+
+  def generate_sign_command(client_id, access_token, timestamp, nonce, sign_string, secret) do
+    sign_data = client_id <> access_token <> timestamp <> nonce <> sign_string
+
+    :crypto.mac(:hmac, :sha256, secret, sign_data)
+    |> Base.encode16(case: :upper)
+  end
+
+  def send_command(access_token, command) do
+    device_id="5014640498f4abdd667f"
+    timestamp = get_timestamp()
+    nonce = generate_nonce()
+    method = "POST"
+    url = "/v1.0/devices/#{device_id}/commands"
+    body = Jason.encode!(%{"commands" => [command]})
+
+    headers = %{
+      "client_id" => @client_id,
+      "access_token" => access_token,
+      "t" => timestamp,
+      "nonce" => nonce,
+      "sign_method" => "HMAC-SHA256",
+      "Content-Type" => "application/json"
+    }
+
+    {sign_string, full_url} = generate_string_to_sign(method, %{}, body, headers, url)
+    sign = generate_sign_command(@client_id, access_token, timestamp, nonce, sign_string, @secret)
+    headers = Map.put(headers, "sign", sign)
+    IO.inspect(headers)
+    IO.inspect(command)
+    response =
+      Req.post!(
+        "https://openapi.tuyaeu.com#{full_url}",
+        headers: headers,
+        json: %{commands: [command]}
+      )
+
+    IO.inspect(response)
   end
 
 end

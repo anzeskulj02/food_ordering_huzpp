@@ -1,10 +1,19 @@
 import Config
 
 # Configure your database
+# config :food_ordering, FoodOrdering.Repo,
+#   username: "anze",
+#   password: "postgres",
+#   hostname: "192.168.2.207",
+#   database: "food_ordering_dev",
+#   stacktrace: true,
+#   show_sensitive_data_on_connection_error: true,
+#   pool_size: 10
+
 config :food_ordering, FoodOrdering.Repo,
-  username: "anze",
+  username: "postgres",
   password: "postgres",
-  hostname: "192.168.2.207",
+  hostname: "localhost",
   database: "food_ordering_dev",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,

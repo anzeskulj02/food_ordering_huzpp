@@ -35,7 +35,7 @@ defmodule FoodOrderingWeb.CustomComponents do
           </div>
           <div class="flex items-center justify-between">
               <span class="text-3xl font-bold text-gray-900"><%= @food.price %> €</span>
-              <a href="#" phx-click="select_more" phx-value-id={@food.id} phx-value-sound={"sounds/izbera_hrane/#{@food.slug}.mp3"} class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Prilagodi</a>
+              <a href="#" phx-click="select_more" phx-value-id={@food.id} phx-value-sound={"sounds/izbera_hrane/#{@food.slug}.mp3"} class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm sm:text-xl px-5 py-2.5 text-center">Prilagodi</a>
           </div>
         </div>
       </div>
@@ -60,7 +60,7 @@ defmodule FoodOrderingWeb.CustomComponents do
 
         <form id="detailed_block_form" phx-submit="add_to_order" phx-update="ignore" class="flex flex-col flex-1 mt-3 sm:mt-5">
           <div class="flex-1">
-            <h2 class="text-sm sm:text-xl font-medium">Odstrani sestavine:</h2>
+            <h2 class="text-sm sm:text-xl font-medium">Dodaj prilogo:</h2>
             <ul class="grid w-full gap-3 sm:gap-6 grid-cols-2 sm:grid-cols-3 mt-2 sm:mt-5 max-h-[40vh] overflow-y-auto">
               <%= for ingredient <- @food.ingredients do %>
                 <li phx-click={if ingredient.slug == "cebula", do: "show_modal_cebula", else: "ingredient_sounds"}
@@ -69,8 +69,7 @@ defmodule FoodOrderingWeb.CustomComponents do
                         id={ingredient.slug}
                         name="ingredients[]"
                         value={ingredient.name}
-                        class="hidden peer"
-                        checked>
+                        class="hidden peer">
                   <label for={ingredient.slug} class="inline-flex flex-col items-center w-full p-2 text-gray-500 bg-white border-2 border-gray-200 rounded-lg cursor-pointer peer-checked:border-blue-600 hover:text-gray-600 peer-checked:text-gray-600 hover:bg-gray-50">
                     <img src={"images/sestavine/#{ingredient.slug}.png"} alt="Flag" class="w-14 h-14 sm:w-20 sm:h-20 object-contain mx-auto"/>
                     <div class="text-xs sm:text-lg font-semibold mt-2 sm:mt-3 text-center"><%= ingredient.name %></div>
@@ -79,6 +78,8 @@ defmodule FoodOrderingWeb.CustomComponents do
               <% end %>
             </ul>
           </div>
+
+          <input type="hidden" name="ingredients[]" value="Brez dodatka" />
 
           <div class="mt-3 sm:mt-10">
             <h2 class="text-sm sm:text-xl font-medium">Izberi količino:</h2>
@@ -102,22 +103,21 @@ defmodule FoodOrderingWeb.CustomComponents do
             </div>
           </div>
 
-          <div class="mt-auto">
+          <div class="mt-auto flex gap-3 sm:gap-5">
+            <button type="button" phx-click="cancle_order"
+                    class="mt-10 w-full text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-xl px-10 py-4">
+              Zavrzi
+            </button>
             <button type="submit"
-                    class="mt-5 w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-lg px-10 py-4">
+                    class="mt-10 w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-xl px-10 py-4">
               Potrdi
             </button>
           </div>
         </form>
-        <button phx-click="cancle_order"
-                class="mt-3 w-full text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-lg px-10 py-4">
-          Zavrzi
-        </button>
-
       </div>
-
     """
   end
+
 
   attr :order, :map, required: true, doc: "order information"
   attr :drinks, :list, required: true, doc: "list of drinks"
@@ -194,9 +194,9 @@ defmodule FoodOrderingWeb.CustomComponents do
 
         <.add_to_order drinks={@drinks}/>
 
-        <div class="flex sm:flex-row items-center justify-between p-4 sm:p-5 bg-white gap-4 sm:gap-0">
-          <div class="text-base sm:text-3xl font-semibold">Skupen znesek: <%= @order.total_price %> €</div>
-          <button id="capture" phx-hook="CameraHook" phx-click="confirm_order" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm sm:text-lg px-4 sm:px-5 py-2 sm:py-2.5 text-center">
+        <div class="flex sm:flex-row items-center justify-between p-6 bg-white gap-4">
+          <div class="text-3xl font-semibold">Cena: <%= @order.total_price %> €</div>
+          <button id="capture" phx-hook="CameraHook" phx-click="confirm_order" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-2xl p-5 text-center">
             Potrdi naročilo
           </button>
         </div>
@@ -286,7 +286,7 @@ defmodule FoodOrderingWeb.CustomComponents do
             </button>
           <% else %>
             <div class="flex flex-row justify-between items-center bg-gray-50 p-4 sm:p-5 rounded-lg">
-              <p>Dostava na: <%= @kontakt.ime %> <%= @kontakt.priimek %></p>
+              <p>Dostava za: <%= @kontakt.ime %> <%= @kontakt.priimek %></p>
               <button phx-click="show_kontakt" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-base sm:text-lg px-4 sm:px-5 py-2 sm:py-2.5 text-center">
                 Uredi
               </button>
@@ -296,14 +296,14 @@ defmodule FoodOrderingWeb.CustomComponents do
 
         <.add_to_order drinks={@drinks}/>
 
-        <div class="flex sm:flex-row items-center justify-between p-4 sm:p-5 bg-white gap-4 sm:gap-0">
-          <div class="text-base sm:text-3xl font-semibold">Skupen znesek: <%= @order.total_price %> €</div>
+        <div class="flex sm:flex-row items-center justify-between p-3 sm:p-5 bg-white gap-4 sm:gap-0">
+          <div class="text-xl font-medium text-gray-900 sm:text-center">Cena: <%= @order.total_price %> €</div>
           <%= if map_size(@kontakt) == 0 do %>
-            <button id="capture" phx-click="confirm_order" disabled class="text-white bg-gray-500 font-medium rounded-lg text-sm sm:text-lg px-4 sm:px-5 py-2 sm:py-2.5 text-center">
+            <button id="capture" phx-click="confirm_order" disabled class="text-white bg-gray-500 font-medium rounded-lg text-lg px-5 py-2 text-center">
               Oddaj naročilo!
             </button>
           <% else %>
-            <button id="capture" phx-click="confirm_order" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm sm:text-lg px-4 sm:px-5 py-2 sm:py-2.5 text-center">
+            <button id="capture" phx-click="confirm_order" class="text-white bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-lg px-5 sm:px-5 py-2 text-center">
               Oddaj naročilo!
             </button>
           <% end %>
@@ -484,8 +484,8 @@ defmodule FoodOrderingWeb.CustomComponents do
                 <div class="relative bg-white rounded-lg shadow-sm">
                     <!-- Modal header -->
                     <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t border-gray-200">
-                        <h3 class="text-3xl font-bold text-red-900">
-                          ! POZOR POZOR POZOR POZOR !
+                        <h3 class="text-2xl sm:text-3xl font-bold text-red-900">
+                          ! POZOR POZOR POZOR !
                         </h3>
                         <button type="button" phx-click="close_modal_pijaca" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center" data-modal-hide="default-modal">
                             <svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
@@ -504,7 +504,7 @@ defmodule FoodOrderingWeb.CustomComponents do
                     <!-- Modal footer -->
                     <div class="flex justify-between items-center p-4 md:p-5 border-t border-gray-200 rounded-b">
                         <a phx-click="add_to_order" phx-value-id_food={1006} phx-value-quantity-input={1} phx-value-ingredients={1} class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-xl text-2xl px-10 py-2.5 text-center">Ne pij sam, dej za rundo!</a>
-                        <a phx-click="add_to_order" phx-value-id_food={@drink.id} phx-value-quantity-input={1} phx-value-ingredients={1} class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">ne dam za rundo</a>
+                        <a phx-click="add_to_order" phx-value-id_food={@drink.id} phx-value-quantity-input={1} phx-value-ingredients={1} class="text-white bg-red-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">ne dam za rundo</a>
                     </div>
                 </div>
             </div>
@@ -552,33 +552,45 @@ defmodule FoodOrderingWeb.CustomComponents do
   attr :kontakt, :map, required: true, doc: "kontakt"
   def kontakt_block(assigns) do
     ~H"""
-      <div class="fixed inset-0 z-40 p-3 flex flex-col items-center justify-center bg-white">
-        <h2 class="text-2xl font-semibold mb-4">Vnesi podatke za dostavo</h2>
-        <form phx-submit="save_kontakt_data" class="space-y-4 w-full">
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Ime</label>
-            <input type="text" name="name" required class="w-full p-2 border border-gray-300 rounded-md">
-          </div>
+      <div class="overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full before:content-[''] before:fixed before:inset-0 before:bg-black before:opacity-50">
+        <div class="relative p-4 w-full max-w-2xl max-h-full">
+          <div class="relative bg-white p-4 rounded-lg shadow-sm">
+            <div class="flex items-center justify-between py-4 border-b rounded-t border-gray-200">
+              <h2 class="text-2xl font-semibold">Vnesi podatke za dostavo</h2>
+              <button type="button" phx-click="hide_kontakt" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-base sm:text-lg w-8 h-8 sm:w-10 sm:h-10 flex justify-center items-center" data-modal-hide="default-modal">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                </svg>
+                <span class="sr-only">Zapri</span>
+              </button>
+            </div>
+            <form phx-submit="save_kontakt_data" class="space-y-4 w-full">
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Ime</label>
+                <input type="text" name="name" required class="w-full p-2 border border-gray-300 rounded-md">
+              </div>
 
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Priimek</label>
-            <input type="text" name="surename" required class="w-full p-2 border border-gray-300 rounded-md">
-          </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Priimek</label>
+                <input type="text" name="surename" required class="w-full p-2 border border-gray-300 rounded-md">
+              </div>
 
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Telefonska številka</label>
-            <input type="text" name="phone" required class="w-full p-2 border border-gray-300 rounded-md">
-          </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Telefonska številka</label>
+                <input type="text" name="phone" required class="w-full p-2 border border-gray-300 rounded-md">
+              </div>
 
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Hišna številka</label>
-            <textarea name="address" required class="w-full p-2 border border-gray-300 rounded-md"></textarea>
-          </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Hišna številka</label>
+                <textarea name="address" required class="w-full p-2 border border-gray-300 rounded-md"></textarea>
+              </div>
 
-          <div>
-            <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600">Shrani</button>
+              <div>
+                <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600">Shrani</button>
+              </div>
+            </form>
           </div>
-        </form>
+        </div>
       </div>
     """
   end

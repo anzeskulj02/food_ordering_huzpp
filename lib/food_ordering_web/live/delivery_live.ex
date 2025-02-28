@@ -65,7 +65,7 @@ defmodule FoodOrderingWeb.DeliveryLive do
     <%= if @order_view do %>
       <CustomComponents.order_block_delivery order={@order} drinks={@drinks} kontakt={@kontakt}/>
     <% end %>
-
+    <div class="mx-auto max-w-2xl">
       <div class="mb-28">
         <%= for food <- @foods do %>
           <%= if @selected_food && @selected_food.id == food.id do %>
@@ -75,15 +75,16 @@ defmodule FoodOrderingWeb.DeliveryLive do
           <% end %>
         <% end %>
       </div>
-      <footer class="fixed bottom-0 left-0 z-20 w-full bg-white border-t border-gray-200 shadow-sm flex items-center justify-between p-6">
+      <footer class="fixed bottom-0 left-0 z-20 w-full bg-white border-t border-gray-200 shadow-sm flex items-center justify-between p-3">
         <span class="text-xl font-medium text-gray-900 sm:text-center"> Cena: <%= Map.get(@order, :total_price) %> €</span>
-        <ul class="flex flex-wrap items-center mt-3 text-lg font-medium text-gray-500 sm:mt-0">
+        <ul class="flex flex-wrap items-center text-lg font-medium text-white bg-blue-700 rounded-lg px-5 py-2.5">
             <li>
-                <a phx-click="finish_order" class="hover:underline">Preglej in zaključi naročilo</a>
+                <a phx-click="finish_order" class="hover:underline">Preglej naročilo</a>
             </li>
         </ul>
       </footer>
       <div id="play-sound-hook" phx-hook="PlaySound"></div>
+    </div>
     """
   end
 
@@ -91,28 +92,42 @@ defmodule FoodOrderingWeb.DeliveryLive do
     quantity = String.to_integer(quantity)
     item_id = String.to_integer(item_id)
 
-    # Find if the item is a food or a drink
     food = Enum.find(socket.assigns.foods, fn food -> food.id == item_id end)
     drink = Enum.find(socket.assigns.drinks, fn drink -> drink.id == item_id end)
 
     cond do
       food ->
-        updated_food = Map.put(food, :quantity, quantity)
-        updated_food = Map.put(updated_food, :ingredients, selected_ingredients)
+        selected_ingredients = List.wrap(selected_ingredients) |> Enum.sort() # Ensure it's always a list
+        unique_key = {food.id, selected_ingredients} # Unique key with sorted ingredients
+
+        updated_food = %{
+          id: food.id,
+          name: food.name,
+          price: food.price,
+          quantity: quantity,
+          ingredients: selected_ingredients
+        }
 
         updated_order =
           socket.assigns.order
           |> Map.update(:food, %{}, fn foods ->
-            Map.update(foods, food.id, updated_food, fn existing ->
-              %{existing | quantity: existing.quantity + quantity, ingredients: selected_ingredients}
+            Map.update(foods, unique_key, updated_food, fn existing ->
+              %{existing | quantity: existing.quantity + quantity}
             end)
           end)
           |> Map.update(:total_price, 0, &(&1 + (food.price * quantity)))
+
         socket = push_event(socket, "play_sound", %{"sound" => "sounds/prehodi/ka-ching.mp3"})
         {:noreply, assign(socket, order: updated_order, selected_food: nil, quantity_counter: 1)}
 
       drink ->
-        updated_drink = Map.put(drink, :quantity, quantity)
+        updated_drink = %{
+          id: drink.id,
+          quantity: quantity,
+          name: drink.name,
+          slug: drink.slug,
+          price: drink.price
+        }
 
         updated_order =
           socket.assigns.order
@@ -122,11 +137,12 @@ defmodule FoodOrderingWeb.DeliveryLive do
             end)
           end)
           |> Map.update(:total_price, 0, &(&1 + (drink.price * quantity)))
+
         socket = push_event(socket, "play_sound", %{"sound" => "sounds/prehodi/ka-ching.mp3"})
         {:noreply, assign(socket, order: updated_order, selected_drink: nil, quantity_counter: 1, pijaca: false)}
 
       true ->
-        {:noreply, socket} # If neither food nor drink is found, do nothing
+        {:noreply, socket}
     end
   end
 
@@ -212,12 +228,17 @@ defmodule FoodOrderingWeb.DeliveryLive do
 
   def handle_event("remove_from_order", %{"id" => food_id}, socket) do
     food = Enum.find(socket.assigns.foods, fn food -> food.id == String.to_integer(food_id) end)
-    quantity = Map.get(socket.assigns.order, :food)[food.id].quantity
+
+    {key, food_entry} =
+      socket.assigns.order.food
+      |> Enum.find(fn {{id, _}, _} -> id == food.id end)
+
+    quantity = food_entry.quantity
 
     updated_order =
       socket.assigns.order
       |> Map.update(:food, %{}, fn foods ->
-        Map.delete(foods, food.id)
+        Map.delete(foods, key)
       end)
       |> Map.update(:total_price, 0, &(&1 - (food.price * quantity)))
 

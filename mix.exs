@@ -59,7 +59,9 @@ defmodule FoodOrdering.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
-      {:escpos, git: "https://github.com/arjan/escpos.git"}
+      {:escpos, git: "https://github.com/arjan/escpos.git"},
+      {:req, "~> 0.5.8"},
+      {:uuid, "~> 1.1"}
     ]
   end
 

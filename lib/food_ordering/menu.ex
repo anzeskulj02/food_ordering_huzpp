@@ -94,6 +94,14 @@ defmodule FoodOrdering.Menu do
       |> Enum.map(&{&1.order_number, &1.expires_at})
   end
 
+  def delete_reserved_pager(order_number) do
+    Repo.get_by(Pagers, order_number: order_number)
+    |> case do
+      nil -> :ok
+      pager -> Repo.delete(pager)
+    end
+  end
+
   def cleanup_expired_order_numbers do
     current_time = DateTime.utc_now()
 

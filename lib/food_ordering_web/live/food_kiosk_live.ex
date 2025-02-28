@@ -191,7 +191,7 @@ defmodule FoodOrderingWeb.FoodKioskLive do
 
   def handle_event("close_modal_pijaca", _params, socket) do
     token = request_token()
-    send_command(token, %{"code" => "switch_1", "value" => true})
+    send_command(token, %{"code" => "switch_1", "value" => false})
     {:noreply, assign(socket, pijaca: false, selected_drink: nil)}
   end
 

@@ -123,6 +123,8 @@ defmodule FoodOrderingWeb.FoodKioskLive do
         {:noreply, assign(socket, order: updated_order, selected_food: nil, quantity_counter: 1)}
 
       drink ->
+        token = request_token()
+        send_command(token, %{"code" => "switch_1", "value" => false})
         updated_drink = %{
           id: drink.id,
           quantity: quantity,
@@ -256,26 +258,53 @@ defmodule FoodOrderingWeb.FoodKioskLive do
     end
   end
 
-  def handle_event("remove_from_order", %{"id" => food_id}, socket) do
-    food = Enum.find(socket.assigns.foods, fn food -> food.id == String.to_integer(food_id) end)
+  def handle_event("remove_from_order", %{"id" => item_id}, socket) do
+    item_id = String.to_integer(item_id)
 
-    {key, food_entry} =
-      socket.assigns.order.food
-      |> Enum.find(fn {{id, _}, _} -> id == food.id end)
+    food = Enum.find(socket.assigns.foods, fn food -> food.id == item_id end)
+    drink = Enum.find(socket.assigns.drinks, fn drink -> drink.id == item_id end)
 
-    quantity = food_entry.quantity
+    cond do
+      # Removing food
+      food ->
+        case Enum.find(socket.assigns.order.food, fn {{id, _}, _} -> id == food.id end) do
+          {key, food_entry} ->
+            quantity = food_entry.quantity
 
-    updated_order =
-      socket.assigns.order
-      |> Map.update(:food, %{}, fn foods ->
-        Map.delete(foods, key)
-      end)
-      |> Map.update(:total_price, 0, &(&1 - (food.price * quantity)))
+            updated_order =
+              socket.assigns.order
+              |> Map.update(:food, %{}, fn foods -> Map.delete(foods, key) end)
+              |> Map.update(:total_price, 0, &(&1 - (food.price * quantity)))
 
-    socket = push_event(socket, "play_sound", %{"sound" => "sounds/prehodi/bo.mp3"})
+            socket = push_event(socket, "play_sound", %{"sound" => "sounds/prehodi/bo.mp3"})
+            {:noreply, assign(socket, order: updated_order)}
 
-    {:noreply, assign(socket, order: updated_order)}
+          nil ->
+            {:noreply, socket} # Food not found in order, do nothing
+        end
+
+      # Removing drink
+      drink ->
+        case Map.get(socket.assigns.order.drinks, drink.id) do
+          nil ->
+            {:noreply, socket} # Drink not found, do nothing
+
+          %{quantity: quantity} = drink_entry ->
+            updated_order =
+              socket.assigns.order
+              |> Map.update(:drinks, %{}, fn drinks -> Map.delete(drinks, drink.id) end)
+              |> Map.update(:total_price, 0, &(&1 - (drink.price * quantity)))
+
+            socket = push_event(socket, "play_sound", %{"sound" => "sounds/prehodi/bo.mp3"})
+            {:noreply, assign(socket, order: updated_order)}
+        end
+
+      # No matching food or drink
+      true ->
+        {:noreply, socket}
+    end
   end
+
 
   # Handle event for selecting more information about the food. From informational view to detailed view
   def handle_event("select_more", %{"id" => food_id, "sound" => sound}, socket) do
@@ -306,7 +335,8 @@ defmodule FoodOrderingWeb.FoodKioskLive do
             File.mkdir_p!(uploads_dir)
             File.write!(Path.join(uploads_dir, filename), binary)
 
-            {:noreply, socket |> push_redirect(to: socket.assigns.live_action)}
+            target_path = socket.assigns.live_action || "/kiosk"
+            {:noreply, socket |> push_redirect(to: target_path)}
 
           :error ->
             {:noreply, put_flash(socket, :error, "Invalid image data")}

@@ -500,6 +500,7 @@ defmodule FoodOrderingWeb.CustomComponents do
                           Redno uživanje alkohola povečuje tveganje za bolezni jeter, srčno-žilne težave ter motnje v delovanju živčnega sistema, kar vodi v težave z razpoloženjem in kakovostjo spanja. Poleg tega pivo vsebuje veliko kalorij, ki prispevajo k povečanju telesne mase, še posebej okoli trebuha, kar lahko vodi v dolgoročne zdravstvene težave. Namesto tega je bolje izbrati zdrave načine sprostitve, ki bodo imeli pozitivne učinke na telo in um.
                         </p>
                         <img src="/images/gifs/pivo.gif" alt="pivo" class="w-full mx-auto" />
+                        <p><b>Runda predstavlja 4 pijače (4 x 2€)</b></p>
                     </div>
                     <!-- Modal footer -->
                     <div class="flex justify-between items-center p-4 md:p-5 border-t border-gray-200 rounded-b">

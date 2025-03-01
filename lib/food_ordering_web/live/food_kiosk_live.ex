@@ -95,8 +95,7 @@ defmodule FoodOrderingWeb.FoodKioskLive do
 
     food = Enum.find(socket.assigns.foods, fn food -> food.id == item_id end)
     drink = Enum.find(socket.assigns.drinks, fn drink -> drink.id == item_id end)
-    IO.inspect(drink)
-    IO.inspect(quantity)
+
     cond do
       food ->
         selected_ingredients = List.wrap(selected_ingredients) |> Enum.sort() # Ensure it's always a list

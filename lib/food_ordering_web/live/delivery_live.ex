@@ -314,6 +314,50 @@ defmodule FoodOrderingWeb.DeliveryLive do
     {:noreply, assign(socket, kontakt: kontakt, kontakt_view: false)}
   end
 
+  def get_timestamp do
+    :os.system_time(:millisecond) |> Integer.to_string()
+  end
+
+  def generate_nonce do
+    UUID.uuid4()
+  end
+
+  def generate_string_to_sign(method, query, body, headers, url) do
+    sha256_hash = :crypto.hash(:sha256, body || "")
+                  |> Base.encode16(case: :lower)
+
+    headers_str =
+      if Map.has_key?(headers, "Signature-Headers") do
+        headers["Signature-Headers"]
+        |> String.split(":")
+        |> Enum.map(fn key ->
+          value = Map.get(headers, key, "")
+          "#{key}:#{value}\n"
+        end)
+        |> Enum.join("")
+      else
+        ""
+      end
+
+    sorted_query =
+      query
+      |> URI.encode_query()
+      |> (fn str -> if str != "", do: "?#{str}", else: "" end).()
+
+    full_url = "#{url}#{sorted_query}"
+
+    sign_string = "#{method}\n#{sha256_hash}\n#{headers_str}\n#{full_url}"
+
+    {sign_string, full_url}
+  end
+
+  def generate_sign(client_id, timestamp, nonce, sign_string, secret) do
+    sign_data = client_id <> timestamp <> nonce <> sign_string
+
+    :crypto.mac(:hmac, :sha256, secret, sign_data)
+    |> Base.encode16(case: :upper)
+  end
+
   def request_token() do
     timestamp = get_timestamp()
     nonce = generate_nonce()

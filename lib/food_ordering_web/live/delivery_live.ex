@@ -230,7 +230,7 @@ defmodule FoodOrderingWeb.DeliveryLive do
 
     socket = push_event(socket, "play_sound", %{"sound" => "sounds/konec/konec.mp3"})
 
-    {:noreply, socket}
+    {:noreply, socket |> push_redirect(to: target_path)}
   end
 
   def handle_event("remove_from_order", %{"id" => item_id}, socket) do

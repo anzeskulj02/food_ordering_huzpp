@@ -13,6 +13,10 @@ defmodule FoodOrderingWeb.DeliveryLive do
 
   @topic "food_orders"
 
+  @api_host  "https://openapi.tuyaeu.com"
+  @client_id "aqj9p7duyukga9g3eag7"       # Replace with your actual Client ID
+  @secret "188224eb30a84daf86feda969be52e1e" # Replace with your actual Access Secret
+
   def mount(_params, _session, socket) do
     foods =
       Menu.list_foods()
@@ -308,6 +312,74 @@ defmodule FoodOrderingWeb.DeliveryLive do
       phone: phone
     }
     {:noreply, assign(socket, kontakt: kontakt, kontakt_view: false)}
+  end
+
+  def request_token() do
+    timestamp = get_timestamp()
+    nonce = generate_nonce()
+    method = "GET"
+    query = %{"grant_type" => "1"}
+    url = "/v1.0/token"
+
+    headers = %{
+      "client_id" => @client_id,
+      "t" => timestamp,
+      "nonce" => nonce,
+      "sign_method" => "HMAC-SHA256"
+    }
+
+    {sign_string, full_url} = generate_string_to_sign(method, query, "", headers, url)
+
+    sign = generate_sign(@client_id, timestamp, nonce, sign_string, @secret)
+
+    headers = Map.put(headers, "sign", sign)
+
+    response =
+      Req.get!(
+        "https://openapi.tuyaeu.com#{full_url}",
+        headers: headers
+      )
+
+    response.body["result"]["access_token"]
+  end
+
+  def generate_sign_command(client_id, access_token, timestamp, nonce, sign_string, secret) do
+    sign_data = client_id <> access_token <> timestamp <> nonce <> sign_string
+
+    :crypto.mac(:hmac, :sha256, secret, sign_data)
+    |> Base.encode16(case: :upper)
+  end
+
+  def send_command(access_token, command) do
+    device_id="5014640498f4abdd667f"
+    timestamp = get_timestamp()
+    nonce = generate_nonce()
+    method = "POST"
+    url = "/v1.0/devices/#{device_id}/commands"
+    body = Jason.encode!(%{"commands" => [command]})
+
+    headers = %{
+      "client_id" => @client_id,
+      "access_token" => access_token,
+      "t" => timestamp,
+      "nonce" => nonce,
+      "sign_method" => "HMAC-SHA256",
+      "Content-Type" => "application/json"
+    }
+
+    {sign_string, full_url} = generate_string_to_sign(method, %{}, body, headers, url)
+    sign = generate_sign_command(@client_id, access_token, timestamp, nonce, sign_string, @secret)
+    headers = Map.put(headers, "sign", sign)
+    IO.inspect(headers)
+    IO.inspect(command)
+    response =
+      Req.post!(
+        "https://openapi.tuyaeu.com#{full_url}",
+        headers: headers,
+        json: %{commands: [command]}
+      )
+
+    IO.inspect(response)
   end
 
   def transform_order(order_map, order_number) do

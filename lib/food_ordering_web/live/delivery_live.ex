@@ -230,6 +230,7 @@ defmodule FoodOrderingWeb.DeliveryLive do
 
     socket = push_event(socket, "play_sound", %{"sound" => "sounds/konec/konec.mp3"})
 
+    target_path = socket.assigns.live_action || "/"
     {:noreply, socket |> push_redirect(to: target_path)}
   end
 

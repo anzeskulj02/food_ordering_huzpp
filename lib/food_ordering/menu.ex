@@ -297,6 +297,7 @@ defmodule FoodOrdering.Menu do
   def get_delivery_orders do
     Order
     |> where([o], o.delivery == true)
+    |> preload(:order_items) # This ensures order_items are loaded
     |> Repo.all()
   end
 end

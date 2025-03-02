@@ -22,6 +22,7 @@ defmodule FoodOrderingWeb.AdminLive do
     sales = Menu.list_sales()
     remaining_paper = Menu.get_remaining_paper()
     delivery_orders = Menu.get_delivery_orders()
+    IO.inspect(delivery_orders)
 
     {:ok, assign(socket, pagers: pagers, sales: sales, remaining_paper: remaining_paper, orders: delivery_orders)}
   end

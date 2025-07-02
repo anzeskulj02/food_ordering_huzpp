@@ -66,8 +66,8 @@ defmodule FoodOrderingWeb.FoodKioskLive do
     <%= if @order_view do %>
       <CustomComponents.order_block order={@order} drinks={@drinks}/>
     <% end %>
-    <div class="mx-auto max-w-2xl">
-      <div class="mb-28">
+    <div class="mx-auto">
+      <div class="mb-28 grid grid-cols-2 gap-4">
         <%= for food <- @foods do %>
             <%= if @selected_food && @selected_food.id == food.id do %>
               <CustomComponents.detailed_block food={@selected_food} quantity={@quantity_counter}/>
@@ -89,17 +89,21 @@ defmodule FoodOrderingWeb.FoodKioskLive do
     """
   end
 
-  def handle_event("add_to_order", %{"id_food" => item_id, "quantity-input" => quantity, "ingredients" => selected_ingredients}, socket) do
+  def handle_event("add_to_order", %{"id_food" => item_id, "quantity-input" => quantity, "ingredients" => selected_ingredients_raw}, socket) do
     quantity = String.to_integer(quantity)
     item_id = String.to_integer(item_id)
 
     food = Enum.find(socket.assigns.foods, fn food -> food.id == item_id end)
     drink = Enum.find(socket.assigns.drinks, fn drink -> drink.id == item_id end)
 
+    selected_ingredients = List.wrap(selected_ingredients_raw) |> Enum.sort()
+
+    selected_ingredients = Enum.reject(selected_ingredients, fn ingredient -> ingredient == "-" end)
+
     cond do
       food ->
-        selected_ingredients = List.wrap(selected_ingredients) |> Enum.sort() # Ensure it's always a list
-        unique_key = {food.id, selected_ingredients} # Unique key with sorted ingredients
+        selected_ingredients = selected_ingredients # Ensure it's always a list
+        unique_key = {food.id, selected_ingredients_raw} # Unique key with sorted ingredients
 
         updated_food = %{
           id: food.id,
@@ -215,7 +219,49 @@ defmodule FoodOrderingWeb.FoodKioskLive do
   end
 
   # Handle event for confirming the order. FINAL STEP
-  def handle_event("confirm_order", _params, socket) do
+  # def handle_event("confirm_order", _params, socket) do
+  #   case Menu.generate_unique_order_number() do
+  #     {:ok, order_number} ->
+  #       IO.inspect(socket.assigns.order)
+  #       IO.inspect(order_number)
+
+  #       Menu.record_sale(socket.assigns.order)
+
+  #       IO.inspect(socket.assigns.order)
+  #       order = transform_order(socket.assigns.order, order_number)
+
+
+
+  #       case Printer.from_usb(0x1504, 0x001d) do
+  #         {:ok, %Printer{} = p} ->
+  #           IO.puts("Printer connected successfully!")
+  #           print_receipt(p, order)
+  #           Menu.use_paper()
+  #           {:ok, p}
+
+  #         {:error, :device_not_found} ->
+  #           Menu.use_paper()
+  #           IO.puts("Error: Printer not found. Please check the connection.")
+  #           :error
+  #       end
+
+  #       PubSub.broadcast(FoodOrdering.PubSub, @topic, {:new_order, order})
+
+  #       Menu.create_order(socket.assigns.order, order_number)
+
+  #       socket= assign(socket, order_view: false, order: %{:food => %{}, :total_price => 0}, loading: true)
+
+  #       socket = push_event(socket, "play_sound", %{"sound" => "sounds/konec/konec.mp3"})
+
+  #       {:noreply, socket}
+
+  #     {:error, :no_available_pagers} ->
+  #       IO.puts("No available order numbers!")
+  #       {:noreply, socket}
+  #   end
+  # end
+
+    def handle_event("confirm_order", _params, socket) do
     case Menu.generate_unique_order_number() do
       {:ok, order_number} ->
         IO.inspect(socket.assigns.order)
@@ -223,31 +269,13 @@ defmodule FoodOrderingWeb.FoodKioskLive do
 
         Menu.record_sale(socket.assigns.order)
 
-        IO.inspect(socket.assigns.order)
         order = transform_order(socket.assigns.order, order_number)
-
-
-
-        case Printer.from_usb(0x1504, 0x001d) do
-          {:ok, %Printer{} = p} ->
-            IO.puts("Printer connected successfully!")
-            print_receipt(p, order)
-            Menu.use_paper()
-            {:ok, p}
-
-          {:error, :device_not_found} ->
-            Menu.use_paper()
-            IO.puts("Error: Printer not found. Please check the connection.")
-            :error
-        end
 
         PubSub.broadcast(FoodOrdering.PubSub, @topic, {:new_order, order})
 
         Menu.create_order(socket.assigns.order, order_number)
 
         socket= assign(socket, order_view: false, order: %{:food => %{}, :total_price => 0}, loading: true)
-
-        socket = push_event(socket, "play_sound", %{"sound" => "sounds/konec/konec.mp3"})
 
         {:noreply, socket}
 

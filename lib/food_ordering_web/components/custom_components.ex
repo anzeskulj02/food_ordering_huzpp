@@ -4,7 +4,7 @@ defmodule FoodOrderingWeb.CustomComponents do
   attr :food, :map, required: true, doc: "food information"
   def information_block(assigns) do
     ~H"""
-      <div class={"w-full my-10 bg-white border border-gray-200 rounded-lg shadow-sm #{if @food.slug == "klapavice" do "opacity-70 grayscale pointer-events-none" end}"}>
+      <div class={"w-full bg-white border border-gray-200 rounded-lg shadow-sm #{if @food.slug == "klapavice" do "opacity-70 grayscale pointer-events-none" end}"}>
         <%= if @food.slug == "klapavice" do %>
           <div class="absolute inset-0 flex items-center justify-center bg-gray-700 bg-opacity-30 text-white text-3xl font-bold rounded-lg">Razprodano</div>
         <% end %>
@@ -62,9 +62,22 @@ defmodule FoodOrderingWeb.CustomComponents do
           <div class="flex-1">
             <h2 class="text-sm sm:text-xl font-medium">Dodaj prilogo:</h2>
             <ul class="grid w-full gap-3 sm:gap-6 grid-cols-2 sm:grid-cols-3 mt-2 sm:mt-5 max-h-[40vh] overflow-y-auto">
-              <%= for ingredient <- @food.ingredients do %>
+              <!--<%= for ingredient <- @food.ingredients do %>
                 <li phx-click={if ingredient.slug == "cebula", do: "show_modal_cebula", else: "ingredient_sounds"}
                     phx-value-sound={"sounds/sestavine/#{ingredient.slug}.mp3"}>
+                  <input type="checkbox"
+                        id={ingredient.slug}
+                        name="ingredients[]"
+                        value={ingredient.name}
+                        class="hidden peer">
+                  <label for={ingredient.slug} class="inline-flex flex-col items-center w-full p-2 text-gray-500 bg-white border-2 border-gray-200 rounded-lg cursor-pointer peer-checked:border-blue-600 hover:text-gray-600 peer-checked:text-gray-600 hover:bg-gray-50">
+                    <img src={"images/sestavine/#{ingredient.slug}.png"} alt="Flag" class="w-14 h-14 sm:w-20 sm:h-20 object-contain mx-auto"/>
+                    <div class="text-xs sm:text-lg font-semibold mt-2 sm:mt-3 text-center"><%= ingredient.name %></div>
+                  </label>
+                </li>
+              <% end %>-->
+              <%= for ingredient <- @food.ingredients do %>
+                <li>
                   <input type="checkbox"
                         id={ingredient.slug}
                         name="ingredients[]"
@@ -79,7 +92,7 @@ defmodule FoodOrderingWeb.CustomComponents do
             </ul>
           </div>
 
-          <input type="hidden" name="ingredients[]" value="Brez dodatka" />
+          <input type="hidden" name="ingredients[]" value="-" />
 
           <div class="mt-3 sm:mt-10">
             <h2 class="text-sm sm:text-xl font-medium">Izberi količino:</h2>
@@ -319,21 +332,21 @@ defmodule FoodOrderingWeb.CustomComponents do
     ~H"""
       <section class="fixed inset-0 z-30 bg-white">
         <div class=" flex flex-col h-full justify-between py-5 sm:py-10 px-2 sm:px-4 mx-auto max-w-screen-3xl text-center lg:py-16">
-            <h1 class="mb-2 sm:mb-4 text-3xl sm:text-4xl font-extrabold tracking-tight leading-none text-gray-900 md:text-5xl lg:text-6xl">HRANA DISKONT</h1>
-            <p class="mb-4 sm:mb-20 text-base sm:text-lg font-normal text-gray-500 lg:text-xl sm:px-16 lg:px-48">Najej se, ne samu pit.<br>Prekomerno uživanje alkohola lahko škodije zdravju. Lahko pa tudi ne.</p>
+            <h1 class="mb-2 sm:mb-4 text-3xl sm:text-4xl font-extrabold tracking-tight leading-none text-gray-900 md:text-5xl lg:text-6xl">HRANA KIOSK</h1>
+            <p class="mb-4 sm:mb-20 text-base sm:text-lg font-normal text-gray-500 lg:text-xl sm:px-16 lg:px-48">Naroči hrano in uživaj.<br>Izberi si svojo jed, si jo prilagodi in dodaj pijačo po izbiri.</p>
             <div class="flex flex-row gap-4 sm:flex-row sm:justify-center sm:space-y-0">
                 <button phx-click="remove_welcome" class="p-10 text-lg sm:text-2xl font-medium text-center text-white rounded-lg bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300">
 
-                    <img class="w-2/3 mx-auto" src="/images/drunk.png" alt="arrow right" />
-                    <p class="mt-5 sm:mt-10">Za tukej</p>
+                    <img class="w-2/3 mx-auto" src="/images/eat_in.png" alt="arrow right" />
+                    <p class="mt-5 sm:mt-10">Za tukaj</p>
                 </button>
                 <button phx-click="remove_welcome" class="p-10 text-lg sm:text-2xl font-medium text-center text-white rounded-lg bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300">
 
-                  <img class="w-2/3 mx-auto" src="/images/drink.png" alt="arrow right" />
-                  <p class="mt-5 sm:mt-10">Za sabo</p>
+                  <img class="w-2/3 mx-auto" src="/images/take_away.png" alt="arrow right" />
+                  <p class="mt-5 sm:mt-10">Za seboj</p>
                 </button>
             </div>
-            <p class="mt-5 sm:mt-8 text-sm sm:text-lg font-normal text-gray-400 lg:text-xl sm:px-16 lg:px-48"><i>* Nima veze kaj zbereš, ne nrdi razlike</i></p>
+            <!--<p class="mt-5 sm:mt-8 text-sm sm:text-lg font-normal text-gray-400 lg:text-xl sm:px-16 lg:px-48"><i>* Nima veze kaj zbereš, ne nrdi razlike</i></p>-->
 
             <div class="flex flex-col gap-2 rounded-lg bg-gray-50 p-3 mt-5 sm:mt-10 overflow-scroll">
               <div class="flex items-center gap-2">
@@ -342,7 +355,7 @@ defmodule FoodOrderingWeb.CustomComponents do
               </div>
               <div class="flex items-center gap-2">
                 <img src={"/images/uk.svg"} alt="Flag" class="w-11 h-7 object-cover" />
-                <p class="text-lg font-semibold text-gray-700">Wellcum</p>
+                <p class="text-lg font-semibold text-gray-700">Welcome</p>
               </div>
               <%= for flag <- flags do %>
                 <div class="flex items-center gap-2">
@@ -399,7 +412,7 @@ defmodule FoodOrderingWeb.CustomComponents do
     <div class="bg-gray-50 p-3 sm:p-6 rounded-lg">
       <h2 class="text-base sm:text-3xl font-bold mb-3 sm:mb-4">Ostali so si privoščili tudi:</h2>
       <div class="flex gap-3 sm:gap-4 overflow-x-auto whitespace-nowrap scrollbar-hide">
-        <%= for drink <- @drinks do %>
+        <%!-- <%= for drink <- @drinks do %>
           <%= if drink.name != "Runda" do %>
             <div phx-click="show_modal_pijaca" phx-value-drink_id={drink.id} class="min-w-[160px] sm:min-w-[250px] p-4 sm:p-6 bg-white border border-gray-200 rounded-lg shadow-sm">
               <a href="#">
@@ -410,12 +423,33 @@ defmodule FoodOrderingWeb.CustomComponents do
               <img class="h-24 sm:h-32 rounded-lg mx-auto" src={"/images/#{drink.slug}.png"} alt="product image"/>
               <div class="flex items-center justify-between mt-4 sm:mt-6">
                 <a href="#" class="inline-flex items-center px-2 py-1 sm:px-3 sm:py-2 text-sm sm:text-base font-medium text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300">
-                  Ajde dej
+                  Dodaj
                   <svg class="rtl:rotate-180 w-3 h-3 sm:w-3.5 sm:h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
                   </svg>
                 </a>
-                <span class="text-base sm:text-lg font-bold text-gray-900"><%= drink.price %></span>
+                <span class="text-base sm:text-lg font-bold text-gray-900"><%= drink.price %> €</span>
+              </div>
+            </div>
+          <% end %>
+        <% end %> --%>
+        <%= for drink <- @drinks do %>
+          <%= if drink.name != "Runda" do %>
+            <div class="min-w-[160px] sm:min-w-[250px] p-4 sm:p-6 bg-white border border-gray-200 rounded-lg shadow-sm">
+              <a href="#">
+                <h5 class="mb-1 sm:mb-2 text-base sm:text-2xl font-bold tracking-tight text-gray-900">
+                  <%= drink.name %>
+                </h5>
+              </a>
+              <img class="h-24 sm:h-32 rounded-lg mx-auto" src={"/images/#{drink.slug}.png"} alt="product image"/>
+              <div class="flex items-center justify-between mt-4 sm:mt-6">
+                <a phx-click="add_to_order" phx-value-id_food={drink.id} phx-value-quantity-input={1} phx-value-ingredients={1} class="inline-flex items-center px-2 py-1 sm:px-3 sm:py-2 text-sm sm:text-base font-medium text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300">
+                  Dodaj
+                  <svg class="rtl:rotate-180 w-3 h-3 sm:w-3.5 sm:h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
+                  </svg>
+                </a>
+                <span class="text-base sm:text-lg font-bold text-gray-900"><%= drink.price %> €</span>
               </div>
             </div>
           <% end %>
@@ -604,15 +638,27 @@ defmodule FoodOrderingWeb.CustomComponents do
     |> Enum.map(&"/images/flags/#{&1}")
   end
 
+  # defp get_translations do
+  #   %{
+  #     "france" => "Tire-moi la bite",
+  #     "germany" => "Zieh mir am Schwanz",
+  #     "italy" => "Tirami il cazzo",
+  #     "spain" => "Tírame de la polla",
+  #     "albania" => "tërhiq tubin tim",
+  #     "russia" => "Тяни мой член",
+  #     "china" => "拉我的鸡巴"
+  #   }
+  # end
+
   defp get_translations do
     %{
-      "france" => "Tire-moi la bite",
-      "germany" => "Zieh mir am Schwanz",
-      "italy" => "Tirami il cazzo",
-      "spain" => "Tírame de la polla",
-      "albania" => "tërhiq tubin tim",
-      "russia" => "Тяни мой член",
-      "china" => "拉我的鸡巴"
+      "france" => "Accueillir",
+      "germany" => "Willkommen",
+      "italy" => "Benvenuto",
+      "spain" => "Bienvenido",
+      "albania" => "Mirë se vini",
+      "russia" => "Добро пожаловать",
+      "china" => "歡迎"
     }
   end
 

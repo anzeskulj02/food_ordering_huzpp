@@ -35,3 +35,4 @@ food_ordering-*.tar
 npm-debug.log
 /assets/node_modules/
 
+/uploads/*

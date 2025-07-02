@@ -209,7 +209,10 @@ defmodule FoodOrderingWeb.CustomComponents do
 
         <div class="flex sm:flex-row items-center justify-between p-6 bg-white gap-4">
           <div class="text-3xl font-semibold">Cena: <%= @order.total_price %> €</div>
-          <button id="capture" phx-hook="CameraHook" phx-click="confirm_order" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-2xl p-5 text-center">
+          <%!-- <button id="capture" phx-hook="CameraHook" phx-click="confirm_order" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-2xl p-5 text-center">
+            Potrdi naročilo
+          </button> --%>
+          <button id="capture" phx-click="confirm_order" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-2xl p-5 text-center">
             Potrdi naročilo
           </button>
         </div>

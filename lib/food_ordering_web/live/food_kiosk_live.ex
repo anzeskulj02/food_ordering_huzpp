@@ -275,7 +275,9 @@ defmodule FoodOrderingWeb.FoodKioskLive do
 
         Menu.create_order(socket.assigns.order, order_number)
 
-        socket= assign(socket, order_view: false, order: %{:food => %{}, :total_price => 0}, loading: true)
+        socket= assign(socket, order_view: false, order: %{:food => %{}, :total_price => 0}, loading: false)
+
+        socket = push_redirect(socket, to: "/")
 
         {:noreply, socket}
 

@@ -24,7 +24,7 @@ defmodule FoodOrderingWeb.Router do
 
     live "/food_dashboard", FoodOrderingWeb.FoodDashboard
 
-    live "/", FoodOrderingWeb.DeliveryLive
+    live "/", FoodOrderingWeb.FoodKioskLive
 
     live "/admin", FoodOrderingWeb.AdminLive
   end
